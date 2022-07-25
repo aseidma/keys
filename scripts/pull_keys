@@ -16,11 +16,15 @@ while [ "$pw" != "$pw_check" ]; do
     read pw_check
 done
 
-echo $pw > ./pw
+echo $pw > $HOME/.keys/scripts/pw
+
+# Delete all existing encrypted keys
+rm $HOME/.keys/* 
 
 for f in $(ls $SSH_DIR); do
+    enc_filename=$(echo $f | openssl aes-256-cbc -base64 -a -salt -pass pass:$pw | sed "s/\//%2F/g")
     # Encrypt ssh key and output to keys repo
-    ansible-vault encrypt --output "$HOME/.keys/$f" --vault-password-file ./pw "$SSH_DIR/$f"
+    ansible-vault encrypt --output "$HOME/.keys/$enc_filename" --vault-password-file $HOME/.keys/scripts/pw "$SSH_DIR/$f"
 done
 
-rm ./pw
+rm $HOME/.keys/scripts/pw
