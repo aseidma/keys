@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+SSH_DIR="$HOME/.ssh"
+for f in (ls $SSH_DIR); do
+    # Encrypt ssh key filename
+    enc_filename=(ansible-vault encrypt_string $f)
+    # Encrypt ssh key and output to keys repo
+    ansible-vault --output "$HOME/.keys/$enc_filename" 
+done
