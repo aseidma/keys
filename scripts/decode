@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+KEYS_DIR="$HOME/.keys"
+# Enter vault password
+while [[ -z $pw ]]; do
+    echo "Vault Password:"
+    read pw
+done
+
+echo $pw > $KEYS_DIR/scripts/pw
+
+for f in $(ls $KEYS_DIR); do
+    if [[ "scripts" == $f ]]; then
+        continue
+    fi
+    # Decode filename
+    parsed_encrypted_filename=$(echo $f | sed "s/%2F/\//g")
+    decoded_filename=$(echo $parsed_encrypted_filename | openssl aes-256-cbc -d -a -base64 -pass pass:$pw)
+    # Decode file to .ssh dir
+    ansible-vault decrypt --output "$HOME/.ssh/$decoded_filename" --vault-password-file $KEYS_DIR/scripts/pw "$KEYS_DIR/$f"
+done
+
+rm $KEYS_DIR/scripts/pw
